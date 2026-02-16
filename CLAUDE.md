@@ -7,7 +7,7 @@ MCP server for Z.AI GLM models, written in Go.
 ```
 ├── main.go          # Entrypoint: CLI flags (--api-key, --coding, --model), server setup, stdio transport
 ├── types.go         # GLM API request/response structs (chat, image, error)
-├── glmclient.go     # HTTP client: ChatCompletion, ImageGeneration, DownloadImage
+├── glmclient.go     # HTTP client: ChatCompletion, ImageGeneration, DownloadImage, SSRF validation
 ├── tools.go         # 4 MCP tools: glm_chat, glm_chat_with_thinking, glm_web_search, glm_image_gen
 ├── README.md        # English (default)
 ├── README_ko.md     # Korean
@@ -24,6 +24,14 @@ MCP server for Z.AI GLM models, written in Go.
 - **Closure pattern**: Tool handlers capture `*GLMClient` via closures
 - **Image handling**: Downloads generated URL → base64 `ImageContent` + URL fallback
 - **Multilingual**: Tool descriptions in EN/KO/JA/ZH separated by `|`
+
+## Security
+
+- **Response size limits**: `io.LimitReader` on all HTTP reads (API: 10MB, image: 50MB)
+- **SSRF prevention**: `validateImageURL()` — https only, blocks localhost/private/link-local IPs
+- **Input validation**: `validateChatParams()` — temperature 0.0–1.0, max_tokens >= 1
+- **Error sanitization**: `parseAPIError()` — never leaks raw response body on parse failure
+- **API key**: prefer `GLM_API_KEY` env var over `--api-key` flag (visible in `ps aux`)
 
 ## API Endpoints
 
