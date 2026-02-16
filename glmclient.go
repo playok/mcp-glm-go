@@ -6,8 +6,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
+)
+
+const (
+	maxAPIResponseSize = 10 << 20 // 10MB for chat/image API responses
+	maxImageDownload   = 50 << 20 // 50MB for image file downloads
 )
 
 const (
@@ -53,17 +61,13 @@ func (c *GLMClient) ChatCompletion(ctx context.Context, req *GLMChatRequest) (*G
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, maxAPIResponseSize))
 	if err != nil {
 		return nil, fmt.Errorf("read response: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		var errResp GLMErrorResponse
-		if json.Unmarshal(respBody, &errResp) == nil && errResp.Error.Message != "" {
-			return nil, fmt.Errorf("GLM API error (%s): %s", errResp.Error.Code, errResp.Error.Message)
-		}
-		return nil, fmt.Errorf("GLM API returned status %d: %s", resp.StatusCode, string(respBody))
+		return nil, parseAPIError(resp.StatusCode, respBody)
 	}
 
 	var chatResp GLMChatResponse
@@ -92,17 +96,13 @@ func (c *GLMClient) ImageGeneration(ctx context.Context, req *GLMImageRequest) (
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, maxAPIResponseSize))
 	if err != nil {
 		return nil, fmt.Errorf("read response: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		var errResp GLMErrorResponse
-		if json.Unmarshal(respBody, &errResp) == nil && errResp.Error.Message != "" {
-			return nil, fmt.Errorf("GLM API error (%s): %s", errResp.Error.Code, errResp.Error.Message)
-		}
-		return nil, fmt.Errorf("GLM API returned status %d: %s", resp.StatusCode, string(respBody))
+		return nil, parseAPIError(resp.StatusCode, respBody)
 	}
 
 	var imgResp GLMImageResponse
@@ -112,8 +112,12 @@ func (c *GLMClient) ImageGeneration(ctx context.Context, req *GLMImageRequest) (
 	return &imgResp, nil
 }
 
-func (c *GLMClient) DownloadImage(ctx context.Context, url string) ([]byte, string, error) {
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+func (c *GLMClient) DownloadImage(ctx context.Context, imageURL string) ([]byte, string, error) {
+	if err := validateImageURL(imageURL); err != nil {
+		return nil, "", fmt.Errorf("invalid image URL: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, imageURL, nil)
 	if err != nil {
 		return nil, "", fmt.Errorf("create download request: %w", err)
 	}
@@ -128,7 +132,7 @@ func (c *GLMClient) DownloadImage(ctx context.Context, url string) ([]byte, stri
 		return nil, "", fmt.Errorf("download image returned status %d", resp.StatusCode)
 	}
 
-	data, err := io.ReadAll(resp.Body)
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxImageDownload))
 	if err != nil {
 		return nil, "", fmt.Errorf("read image data: %w", err)
 	}
@@ -139,4 +143,42 @@ func (c *GLMClient) DownloadImage(ctx context.Context, url string) ([]byte, stri
 	}
 
 	return data, mimeType, nil
+}
+
+// validateImageURL checks that the URL is safe to fetch (SSRF prevention).
+func validateImageURL(rawURL string) error {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("malformed URL")
+	}
+
+	if u.Scheme != "https" {
+		return fmt.Errorf("only https URLs are allowed")
+	}
+
+	host := u.Hostname()
+
+	// Block localhost and loopback
+	if host == "localhost" || strings.HasPrefix(host, "127.") || host == "::1" {
+		return fmt.Errorf("loopback addresses are not allowed")
+	}
+
+	// Block private/internal IP ranges
+	ip := net.ParseIP(host)
+	if ip != nil {
+		if ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
+			return fmt.Errorf("private/internal addresses are not allowed")
+		}
+	}
+
+	return nil
+}
+
+// parseAPIError extracts a safe error message from API error responses.
+func parseAPIError(statusCode int, body []byte) error {
+	var errResp GLMErrorResponse
+	if json.Unmarshal(body, &errResp) == nil && errResp.Error.Message != "" {
+		return fmt.Errorf("GLM API error (%s): %s", errResp.Error.Code, errResp.Error.Message)
+	}
+	return fmt.Errorf("GLM API returned status %d", statusCode)
 }

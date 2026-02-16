@@ -145,6 +145,8 @@ GLM-5만 사용:
 | `--coding` | Coding Plan 엔드포인트 사용 (`api/coding/paas/v4`) | false |
 | `--model` | 기본 채팅 모델 지정 | `glm-4.7` |
 
+> **보안 주의:** `--api-key` 플래그를 사용하면 `ps aux` 등 프로세스 목록에서 API 키가 노출될 수 있습니다. `GLM_API_KEY` 환경변수 사용을 권장합니다.
+
 ## 사용법
 
 Antigravity 채팅에서 `@mcp:<서버이름>:<도구이름>` 형태로 호출합니다.

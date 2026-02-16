@@ -145,6 +145,8 @@ setx GLM_API_KEY "your-api-key"
 | `--coding` | 使用Coding Plan端点（`api/coding/paas/v4`） | false |
 | `--model` | 指定默认聊天模型 | `glm-4.7` |
 
+> **安全警告：** 使用 `--api-key` 参数时，API密钥可能会在进程列表（如 `ps aux`）中暴露。建议使用 `GLM_API_KEY` 环境变量代替。
+
 ## 使用方法
 
 在Antigravity聊天中使用 `@mcp:<服务器名>:<工具名>` 格式调用。

@@ -145,6 +145,8 @@ GLM-5のみ：
 | `--coding` | Coding Planエンドポイントを使用（`api/coding/paas/v4`） | false |
 | `--model` | デフォルトチャットモデルを指定 | `glm-4.7` |
 
+> **セキュリティ注意:** `--api-key` フラグを使用すると、`ps aux` などのプロセス一覧でAPIキーが表示される可能性があります。`GLM_API_KEY` 環境変数の使用を推奨します。
+
 ## 使い方
 
 Antigravityチャットで `@mcp:<サーバー名>:<ツール名>` 形式で呼び出します。

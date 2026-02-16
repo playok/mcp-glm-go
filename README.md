@@ -145,6 +145,8 @@ GLM-5 only:
 | `--coding` | Use Coding Plan endpoint (`api/coding/paas/v4`) | false |
 | `--model` | Default chat model | `glm-4.7` |
 
+> **Security Warning:** When using `--api-key`, the key may be visible in process listings (e.g. `ps aux`). It is recommended to use the `GLM_API_KEY` environment variable instead.
+
 ## Usage
 
 Call tools in Antigravity chat using `@mcp:<server>:<tool>` format.

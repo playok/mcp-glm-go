@@ -59,6 +59,16 @@ func resolveModel(input string, defaultModel string) string {
 	return defaultModel
 }
 
+func validateChatParams(temperature *float64, maxTokens *int) error {
+	if temperature != nil && (*temperature < 0.0 || *temperature > 1.0) {
+		return fmt.Errorf("temperature must be between 0.0 and 1.0")
+	}
+	if maxTokens != nil && *maxTokens < 1 {
+		return fmt.Errorf("max_tokens must be at least 1")
+	}
+	return nil
+}
+
 func registerChatTool(server *mcp.Server, client *GLMClient, defaultModel string) {
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "glm_chat",
@@ -69,6 +79,9 @@ func registerChatTool(server *mcp.Server, client *GLMClient, defaultModel string
 				Content: []mcp.Content{&mcp.TextContent{Text: "prompt is required. | prompt는 필수입니다. | promptは必須です。 | prompt为必填项。"}},
 				IsError: true,
 			}, nil, nil
+		}
+		if err := validateChatParams(input.Temperature, input.MaxTokens); err != nil {
+			return errorResult(err), nil, nil
 		}
 
 		messages := buildMessages(input.SystemMsg, input.Prompt)
@@ -102,6 +115,9 @@ func registerThinkingTool(server *mcp.Server, client *GLMClient, defaultModel st
 				Content: []mcp.Content{&mcp.TextContent{Text: "prompt is required. | prompt는 필수입니다. | promptは必須です。 | prompt为必填项。"}},
 				IsError: true,
 			}, nil, nil
+		}
+		if err := validateChatParams(nil, input.MaxTokens); err != nil {
+			return errorResult(err), nil, nil
 		}
 
 		messages := buildMessages(input.SystemMsg, input.Prompt)
@@ -150,6 +166,9 @@ func registerWebSearchTool(server *mcp.Server, client *GLMClient, defaultModel s
 				Content: []mcp.Content{&mcp.TextContent{Text: "prompt is required. | prompt는 필수입니다. | promptは必須です。 | prompt为必填项。"}},
 				IsError: true,
 			}, nil, nil
+		}
+		if err := validateChatParams(nil, input.MaxTokens); err != nil {
+			return errorResult(err), nil, nil
 		}
 
 		messages := buildMessages(input.SystemMsg, input.Prompt)
