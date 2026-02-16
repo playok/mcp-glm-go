@@ -28,6 +28,53 @@ cd mcp-glm-go
 go build -o mcp-glm-go .
 ```
 
+## API密钥设置（可选）
+
+可以将API密钥设置为系统环境变量，而不是写在Antigravity配置文件中。
+
+**macOS / Linux (bash/zsh)**
+
+```bash
+# 添加到 ~/.bashrc、~/.zshrc 或 ~/.bash_profile
+export GLM_API_KEY="your-api-key"
+
+# 立即生效
+source ~/.zshrc  # 或 ~/.bashrc
+```
+
+**Windows (PowerShell)**
+
+```powershell
+# 仅当前会话
+$env:GLM_API_KEY = "your-api-key"
+
+# 永久设置（用户级别）
+[System.Environment]::SetEnvironmentVariable("GLM_API_KEY", "your-api-key", "User")
+```
+
+**Windows (CMD)**
+
+```cmd
+# 仅当前会话
+set GLM_API_KEY=your-api-key
+
+# 永久设置（用户级别）
+setx GLM_API_KEY "your-api-key"
+```
+
+设置 `GLM_API_KEY` 环境变量后，可以在Antigravity配置中省略 `env` 块：
+
+```json
+{
+  "mcpServers": {
+    "glm": {
+      "command": "/absolute/path/to/mcp-glm-go",
+      "args": ["--coding"]
+    }
+  }
+}
+```
+
 ## Antigravity配置
 
 在Antigravity设置文件中添加MCP服务器。同时注册GLM-4.7和GLM-5，可根据用途选择使用。

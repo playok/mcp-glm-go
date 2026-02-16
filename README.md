@@ -28,6 +28,53 @@ cd mcp-glm-go
 go build -o mcp-glm-go .
 ```
 
+## API Key Setup (Optional)
+
+Instead of setting the API key in the Antigravity config, you can set it as a system environment variable.
+
+**macOS / Linux (bash/zsh)**
+
+```bash
+# Add to ~/.bashrc, ~/.zshrc, or ~/.bash_profile
+export GLM_API_KEY="your-api-key"
+
+# Apply immediately
+source ~/.zshrc  # or ~/.bashrc
+```
+
+**Windows (PowerShell)**
+
+```powershell
+# Current session only
+$env:GLM_API_KEY = "your-api-key"
+
+# Permanent (user-level)
+[System.Environment]::SetEnvironmentVariable("GLM_API_KEY", "your-api-key", "User")
+```
+
+**Windows (CMD)**
+
+```cmd
+# Current session only
+set GLM_API_KEY=your-api-key
+
+# Permanent (user-level)
+setx GLM_API_KEY "your-api-key"
+```
+
+When `GLM_API_KEY` is set as an environment variable, you can omit the `env` block in Antigravity config:
+
+```json
+{
+  "mcpServers": {
+    "glm": {
+      "command": "/absolute/path/to/mcp-glm-go",
+      "args": ["--coding"]
+    }
+  }
+}
+```
+
 ## Antigravity Configuration
 
 Add the MCP server to your Antigravity settings. You can register both GLM-4.7 and GLM-5 to choose by use case.

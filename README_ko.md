@@ -28,6 +28,53 @@ cd mcp-glm-go
 go build -o mcp-glm-go .
 ```
 
+## API 키 설정 (선택사항)
+
+Antigravity 설정 파일에 API 키를 넣는 대신, 시스템 환경변수로 설정할 수 있습니다.
+
+**macOS / Linux (bash/zsh)**
+
+```bash
+# ~/.bashrc, ~/.zshrc, 또는 ~/.bash_profile에 추가
+export GLM_API_KEY="your-api-key"
+
+# 즉시 적용
+source ~/.zshrc  # 또는 ~/.bashrc
+```
+
+**Windows (PowerShell)**
+
+```powershell
+# 현재 세션만
+$env:GLM_API_KEY = "your-api-key"
+
+# 영구 설정 (사용자 수준)
+[System.Environment]::SetEnvironmentVariable("GLM_API_KEY", "your-api-key", "User")
+```
+
+**Windows (CMD)**
+
+```cmd
+# 현재 세션만
+set GLM_API_KEY=your-api-key
+
+# 영구 설정 (사용자 수준)
+setx GLM_API_KEY "your-api-key"
+```
+
+`GLM_API_KEY` 환경변수를 설정하면 Antigravity 설정에서 `env` 블록을 생략할 수 있습니다:
+
+```json
+{
+  "mcpServers": {
+    "glm": {
+      "command": "/absolute/path/to/mcp-glm-go",
+      "args": ["--coding"]
+    }
+  }
+}
+```
+
 ## Antigravity 구성
 
 Antigravity 설정 파일에 MCP 서버를 추가합니다. glm-4.7과 glm-5를 동시에 등록하면 용도에 따라 골라 사용할 수 있습니다.
