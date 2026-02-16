@@ -1,0 +1,17 @@
+# Binary
+glm5-mcp-server
+glm-mcp-server
+mcp-glm-go
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude
+.claude/
